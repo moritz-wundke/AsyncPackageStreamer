@@ -1,0 +1,21 @@
+{
+	"FileVersion" : 3,
+	
+	"FriendlyName" : "Async Package Streamer",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "Moritz Wundke & Ruben Avalos Elvira",
+	"CreatedByURL" : "http://www.moritzwundke.com",
+	"EngineVersion" : "4.5.0",
+	"Description" : "Plugin that is able to stream a PAK file from a remote or a local file system",
+	"Category" : "DLC",
+	"EnabledByDefault" : true,
+	
+	"Modules" :
+	[
+		{
+			"Name" : "AsyncPackageStreamer",
+			"Type" : "Runtime"
+		}
+	]
+}
