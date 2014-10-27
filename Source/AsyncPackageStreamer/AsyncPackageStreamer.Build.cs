@@ -37,6 +37,7 @@ namespace UnrealBuildTool.Rules
                     "CoreUObject",
                     "Engine",
                     "PakFile",
+                    "Sockets",
                     "StreamingFile",
                     "NetworkFile"
 					// ... add private dependencies that you statically link with here ...
