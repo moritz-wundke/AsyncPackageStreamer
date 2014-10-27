@@ -7,7 +7,7 @@
 	"CreatedBy" : "Moritz Wundke & Ruben Avalos Elvira",
 	"CreatedByURL" : "http://www.moritzwundke.com",
 	"EngineVersion" : "4.5.0",
-	"Description" : "Plugin that is able to stream a PAK file from a remote or a local file system",
+	"Description" : "Provides the ability to load PAK files from a local or remote location.",
 	"Category" : "DLC",
 	"EnabledByDefault" : true,
 	
@@ -15,7 +15,8 @@
 	[
 		{
 			"Name" : "AsyncPackageStreamer",
-			"Type" : "Runtime"
+			"Type" : "Runtime",
+            "LoadingPhase" : "PreDefault"
 		}
 	]
 }

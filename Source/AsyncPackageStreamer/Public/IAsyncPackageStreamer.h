@@ -16,9 +16,6 @@ class IAsyncPackageStreamer : public IModuleInterface
 
 public:
 
-    /** Access the streamer */
-    virtual FAssetStreamer& GetStreamer() const = 0;
-
     /** Access the streamable manager */
     virtual FStreamableManager& GetStreamableManager() const = 0;
 

@@ -3,8 +3,9 @@
 
 class IPlatformFile;
 class FStreamingNetworkPlatformFile;
-struct FStringAssetReference;
 class FPakPlatformFile;
+struct FStringAssetReference;
+struct FStreamableManager;
 
 namespace EAssetStreamingMode
 {
@@ -44,7 +45,7 @@ public:
     }
 
     /** Initialize the FAssetStreamer and point to the using host:port */
-    bool Initialize(const FString& ServerHost);
+    bool Initialize(FStreamableManager* StreamableManager);
 
     /**
      * Stream assets form a PAK file remotely or from the local file system
@@ -70,6 +71,9 @@ public:
             FPlatformProcess::Sleep(SleepTime);
         }
     }
+
+    /** The host:port connection string for the remote file server*/
+    FString ServerHost;
 
 private:
 
@@ -114,4 +118,9 @@ private:
     /** The assets that we are goind to stream */
     TArray<FStringAssetReference> StreamedAssets;
 
+    /** Should we use signed PAKs only? */
+    bool bSigned;
+
+    /** The streamable manager 'someone' must provide us with from the outside */
+    FStreamableManager* StreamableManager;
 };

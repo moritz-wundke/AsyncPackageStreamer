@@ -2,6 +2,7 @@
 #include "IPlatformFilePak.h"
 #include "StreamingNetworkPlatformFile.h"
 #include "FileManagerGeneric.h"
+#include "AssetStreamer.h"
 
 FAssetStreamer::FAssetStreamer()
     : NetPlatform(new FStreamingNetworkPlatformFile())
@@ -10,10 +11,21 @@ FAssetStreamer::FAssetStreamer()
     
 }
 
-bool FAssetStreamer::Initialize(const FString& ServerHost)
+bool FAssetStreamer::Initialize(FStreamableManager* StreamableManager)
 {
+    check(StreamableManager);
     if (!bInitialized)
     {
+        // Load config values
+        if (!GConfig->GetString(TEXT("AssetStreamer"), TEXT("ServerHost"), ServerHost, GEngineIni))
+        {
+            ServerHost = TEXT("127.0.0.1:8081");
+        }
+        if (!GConfig->GetBool(TEXT("AssetStreamer"), TEXT("bSigned"), bSigned, GEngineIni))
+        {
+            bSigned = false;
+        }        
+
         LocalPlatformFile = &FPlatformFileManager::Get().GetPlatformFile();
         if (LocalPlatformFile != nullptr)
         {
@@ -33,6 +45,11 @@ bool FAssetStreamer::Initialize(const FString& ServerHost)
     {
         UE_LOG(LogAsyncPackageStreamer, Error, TEXT("Failed to initialize AssetStreamer using %s for remote file streaming"), *ServerHost);
     }
+    else
+    {
+        // We aquire the StreamableManager pointer only on successfull initialization
+        this->StreamableManager = StreamableManager;
+    }
 
     return bInitialized;
 }
@@ -51,25 +68,6 @@ bool FAssetStreamer::StreamPackage(const FString& PakFileName, IAssetStreamerLis
     CurrentMode = DesiredMode;
     FPlatformFileManager::Get().SetPlatformFile(*PakPlatform);
 
-    // We must now if the files we are about to stream are signed or not, it MUST be in sync with the platform file
-    bool bSigned = false;
-    // TODO: Address signed PAKs, Add -Signed to commandline?
-#if 0
-#if !USING_SIGNED_CONTENT
-    bSigned = FParse::Param(CmdLine, TEXT("Signedpak")) || FParse::Param(CmdLine, TEXT("Signed"));
-    if (!bSigned)
-    {
-        // Even if -signed is not provided in the command line, use signed reader if the hardcoded key is non-zero.
-        FEncryptionKey DecryptionKey;
-        DecryptionKey.Exponent.Parse(DECRYPTION_KEY_EXPONENT);
-        DecryptionKey.Modulus.Parse(DECYRPTION_KEY_MODULUS);
-        bSigned = !DecryptionKey.Exponent.IsZero() && !DecryptionKey.Modulus.IsZero();
-    }
-#else
-    bSigned = true;
-#endif
-#endif
-
     // Now Get the path and start the streaming
     const FString FilePath = bRemote ? ResolveRemotePath(PakFileName) : ResolveLocalPath(PakFileName);
 
@@ -78,6 +76,7 @@ bool FAssetStreamer::StreamPackage(const FString& PakFileName, IAssetStreamerLis
     if (!PakFile.IsValid())
     {
         Unlock();
+        UE_LOG(LogAsyncPackageStreamer, Error, TEXT("Invalid pak file: %s"), *FilePath);
         return false;
     }
 
@@ -87,6 +86,7 @@ bool FAssetStreamer::StreamPackage(const FString& PakFileName, IAssetStreamerLis
     if (!PakPlatform->Mount(*FilePath, PakOrder, *FPaths::EngineContentDir()))
     {
         Unlock();
+        UE_LOG(LogAsyncPackageStreamer, Error, TEXT("Failed to mount pak file: %s"), *FilePath);
         return false;
     }
 
@@ -110,16 +110,21 @@ bool FAssetStreamer::StreamPackage(const FString& PakFileName, IAssetStreamerLis
     // Once we started the async work assign listener
     Listener = AssetStreamerListener;
 
-    //// Tell the listsner which assets we are about to stream
+    // Tell the listener which assets we are about to stream
     if (Listener)
     {
         Listener->OnPrepareAssetStreaming(StreamedAssets);
     }
 
-    // TODO: Where should we get the FStreamableManager from?
-    FStreamableManager& Streamable = FModuleManager::LoadModuleChecked<IAsyncPackageStreamer>("AsyncPackageStreamer").GetStreamableManager();
-    Streamable.RequestAsyncLoad(StreamedAssets, FStreamableDelegate::CreateRaw(this, &FAssetStreamer::OnStreamingCompleteDelegate));
+    // IF we have not yet a StreamableManager setup (Arrr...) abort
+    if (StreamableManager == nullptr)
+    {
+        Unlock();
+        UE_LOG(LogAsyncPackageStreamer, Error, TEXT("No StreamableManager registered, did you missed to call initialize?"));
+        return false;
+    }
 
+    StreamableManager->RequestAsyncLoad(StreamedAssets, FStreamableDelegate::CreateRaw(this, &FAssetStreamer::OnStreamingCompleteDelegate));
     return true;
 }
 
