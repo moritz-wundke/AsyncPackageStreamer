@@ -1,3 +1,5 @@
+// Copyright (c) 2014 Moritz Wundke & Ruben Avalos Elvira
+
 #include "AsyncPackageStreamerPrivatePCH.h"
 #include "IPlatformFilePak.h"
 #include "StreamingNetworkPlatformFile.h"

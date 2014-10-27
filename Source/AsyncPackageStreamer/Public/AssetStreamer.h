@@ -1,4 +1,5 @@
-// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright (c) 2014 Moritz Wundke & Ruben Avalos Elvira
+
 #pragma once
 
 class IPlatformFile;
@@ -123,4 +124,5 @@ private:
 
     /** The streamable manager 'someone' must provide us with from the outside */
     FStreamableManager* StreamableManager;
+
 };
