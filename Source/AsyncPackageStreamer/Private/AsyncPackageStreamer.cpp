@@ -10,32 +10,18 @@ class FAsyncPackageStreamer: public IAsyncPackageStreamer
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-    /** Access the streamable manager */
-    virtual FStreamableManager& GetStreamableManager() const override;
-
 private:
-    /** Streamable manager used internally */
-    FStreamableManager* StreamableManager;
 };
 
 IMPLEMENT_MODULE( FAsyncPackageStreamer, AsyncPackageStreamer )
 
-FStreamableManager& FAsyncPackageStreamer::GetStreamableManager() const
-{
-    check(StreamableManager);
-    return *StreamableManager;
-}
-
 void FAsyncPackageStreamer::StartupModule()
 {
-    StreamableManager = new FStreamableManager();
 }
 
 
 void FAsyncPackageStreamer::ShutdownModule()
 {
-    delete StreamableManager;
-    StreamableManager = NULL;
 }
 
 
