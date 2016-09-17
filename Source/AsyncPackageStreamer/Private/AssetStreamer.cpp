@@ -62,7 +62,7 @@ bool FAssetStreamer::StreamPackage(const FString& PakFileName, IAssetStreamerLis
     Listener = NULL;
 
     const bool bRemote = (DesiredMode == EAssetStreamingMode::Remote);
-    if (!(bRemote && UseRemote(CmdLine) || !bRemote && UseLocal(CmdLine)))
+    if (!((bRemote && UseRemote(CmdLine)) || (!bRemote && UseLocal(CmdLine))))
     {
         Unlock();
         return false;
